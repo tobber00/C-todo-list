@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "todolistC": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

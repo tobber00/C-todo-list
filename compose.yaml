@@ -1,0 +1,18 @@
+services:
+  db:
+    image: mysql:9.4.0
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "todo"
+    volumes:
+      - ./persistence/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+
+  adminer:
+    image: adminer:4.17.1
+    environment:
+     ADMINER_DEFAULT_SERVER: 
+     ADMINER_DESIGN: nette
+    ports:
+    - 8080:8080
