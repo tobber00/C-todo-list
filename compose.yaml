@@ -1,18 +1,47 @@
 services:
   db:
     image: mysql:9.4.0
-    environment:
-      MYSQL_ROOT_PASSWORD: "password"
-      MYSQL_DATABASE: "todo"
+    env_file:
+      - ./envs/.env
     volumes:
       - ./persistence/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "3306:3306"
+    networks:
+      - internal_network
+    #ports should only be exposed for cmd interface use
+    #ports:
+    # - "3306:3306"
 
+  api:
+    env_file:
+      - ./envs/.env
+      - ./envs/.env.api
+    build:
+      context: ./TodoListAPI/TodoListAPI/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: "db"
+    networks:
+      - internal_network
+      - external_network
+    ports:
+      - "8000:8080"
+    depends_on:
+      - db
+
+  #for database testing
   adminer:
     image: adminer:4.17.1
     environment:
-     ADMINER_DEFAULT_SERVER: 
-     ADMINER_DESIGN: nette
+      ADMINER_DEFAULT_SERVER:
+      ADMINER_DESIGN: nette
+    networks:
+      - internal_network
+      - external_network
     ports:
-    - 8080:8080
+      - 8080:8080
+
+networks:
+  internal_network:
+    internal: true
+  external_network:
