@@ -1,14 +1,14 @@
 import { signIn } from "@/auth";
 
-export default function SignIn({ provider, ...props }: { provider?: string }) {
+export default function SignIn() {
   return (
     <form
       action={async () => {
         "use server";
-        await signIn(provider);
+        await signIn("github");
       }}
     >
-      <button {...props}>Sign In</button>
+      <button type="submit">Signin with GitHub</button>
     </form>
   );
 }
