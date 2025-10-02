@@ -36,13 +36,28 @@ public class DatabaseConnector
         return conn;
     }
 
-    public void AddTodo(string task)
+    public TodoItem AddTodo(string task)
     {
-        string sql = "INSERT INTO todos (task) VALUES (@task);";
+        string sql = "INSERT INTO todos (task) VALUES (@task); SELECT id, task, completed FROM todos WHERE id = LAST_INSERT_ID();";
         using (var command = new MySqlCommand(sql, connection))
         {
             command.Parameters.AddWithValue("@task", task);
-            int rowsAffected = command.ExecuteNonQuery();
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new TodoItem
+                    {
+                        id = reader.GetInt32("id"),
+                        task = reader.GetString("task"),
+                        completed = reader.GetBoolean("completed")
+                    };
+                }
+                else
+                {
+                    throw new Exception("Failed to retrieve inserted todo item.");
+                }
+            }
         }
     }
 

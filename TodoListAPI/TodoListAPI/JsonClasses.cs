@@ -23,3 +23,9 @@ public class TodoList
     public List<TodoItem> data { get; set; }
     public string error { get; set; }
 }
+
+public class TodoWithError
+{
+    public TodoItem data { get; set; }
+    public string error { get; set; }
+}

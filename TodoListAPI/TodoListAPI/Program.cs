@@ -18,7 +18,18 @@ app.UseHttpsRedirection();
 
 app.MapPost("/AddTodo", (TaskJson taskJson) =>
 {
-    databaseConn.AddTodo(taskJson.task);
+    var todo = new TodoWithError();
+    try
+    {
+        todo.data = databaseConn.AddTodo(taskJson.task);
+        todo.error = "";
+    }
+    catch (Exception ex)
+    {
+        todo.data = null;
+        todo.error = ex.Message;
+    }
+    return todo;
 })
 .WithName("AddTodo");
 

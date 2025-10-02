@@ -1,5 +1,6 @@
 .vs/
 .env
 .env.api
+.env.local
 bin/
 obj/
