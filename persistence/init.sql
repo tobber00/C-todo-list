@@ -1,5 +1,39 @@
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(200) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS verification_tokens (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    user_id INTEGER,
+    CONSTRAINT user_id_vt_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(200) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS todolists (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    owner_id INTEGER,
+    CONSTRAINT owner_id_fk FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS todos (
-    id SERIAL PRIMARY KEY,
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
     task TEXT NOT NULL,
-    completed BOOLEAN NOT NULL DEFAULT FALSE
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    list_id INTEGER,
+    CONSTRAINT list_id_fk FOREIGN KEY (list_id) REFERENCES todolists(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS todolist_shares (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    todolist_id INTEGER,
+    CONSTRAINT todolist_id_fk FOREIGN KEY (todolist_id) REFERENCES todolists(id) ON DELETE CASCADE,
+    user_id INTEGER,
+    CONSTRAINT user_id_ts_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(todolist_id, user_id)
 );

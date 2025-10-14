@@ -1,3 +1,5 @@
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,7 +23,7 @@ app.MapPost("/AddTodo", (TaskJson taskJson) =>
     var todo = new TodoWithError();
     try
     {
-        todo.data = databaseConn.AddTodo(taskJson.task);
+        todo.data = databaseConn.AddTodo(taskJson.task, taskJson.listID);
         todo.error = "";
     }
     catch (Exception ex)
@@ -45,27 +47,109 @@ app.MapPut("/ChangeCompletion", (string todoID, CompletionJson completion) =>
 })
 .WithName("ChangeCompletion");
 
-app.MapDelete("/ClearTodo", () =>
+app.MapDelete("/ClearTodo", (string listID) =>
 {
-    databaseConn.ClearList();
+    databaseConn.ClearList(listID);
 })
 .WithName("ClearTodoList");
 
-app.MapGet("/GetTodoList", () =>
+app.MapGet("/GetTodoListItems", (string listID) =>
 {
-    var todoList = new TodoList();
+    var todoItems = new TodoItems();
     try
     {
-        todoList.data = databaseConn.GetTodoItems();
+        todoItems.data = databaseConn.GetTodoItems(listID);
+        todoItems.error = "";
+    }
+    catch (Exception ex)
+    {
+        todoItems.data = new List<TodoItem>();
+        todoItems.error = ex.Message;
+    }
+    return todoItems;
+})
+.WithName("GetTodoListItems");
+
+app.MapGet("/GetTodoLists", (string ownerID) =>
+{
+    var todoLists = new TodoLists();
+    try
+    {
+        todoLists.data = databaseConn.GetTodoLists(ownerID);
+        todoLists.error = "";
+    }
+    catch (Exception ex)
+    {
+        todoLists.data = new List<TodoList>();
+        todoLists.error = ex.Message;
+    }
+    return todoLists;
+})
+.WithName("GetTodoLists");
+
+app.MapPost("/CreateTodoList", (TodoListJson todoListJson) =>
+{
+    var todoList = new TodoListWithError();
+    try
+    {
+        todoList.data = databaseConn.CreateTodoList(todoListJson.ownerID, todoListJson.name);
         todoList.error = "";
     }
     catch (Exception ex)
     {
-        todoList.data = new List<TodoItem>();
+        todoList.data = null;
         todoList.error = ex.Message;
     }
     return todoList;
 })
-.WithName("GetTodoList");
+.WithName("CreateTodoList");
+
+app.MapPost("/User", (UserJson userJson) =>
+{
+    //TODO hash password somewhere
+    databaseConn.CreateUser(userJson.username, userJson.password, userJson.email);
+})
+.WithName("User");
+
+app.MapDelete("/DeleteUser", (string userID) =>
+{
+    databaseConn.DeleteUser(userID);
+}).WithName("DeleteUser");
+
+app.MapGet("/UserExist", (string username) =>
+{
+    return databaseConn.UserExists(username);
+}).WithName("UserExist");
+
+app.MapDelete("/DeleteTodoList", (string listID) =>
+{
+    databaseConn.DeleteTodoList(listID);
+}).WithName("DeleteTodoList");
+
+app.MapPost("/ShareTodoList", (ShareJson shareJson) =>
+{
+    databaseConn.ShareTodoList(shareJson);
+}).WithName("ShareTodoList");
+
+app.MapPost("/UnshareTodoList", (ShareJson shareJson) =>
+{
+    databaseConn.UnshareTodoList(shareJson);
+}).WithName("UnshareTodoList");
+
+app.MapGet("/GetSharedTodoLists", (string userID) =>
+{
+    var todoLists = new TodoLists();
+    try
+    {
+        todoLists.data = databaseConn.GetSharedTodoLists(userID);
+        todoLists.error = "";
+    }
+    catch (Exception ex)
+    {
+        todoLists.data = new List<TodoList>();
+        todoLists.error = ex.Message;
+    }
+    return todoLists;
+}).WithName("GetSharedTodoLists");
 
 app.Run();
