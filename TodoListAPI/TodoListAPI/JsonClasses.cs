@@ -77,3 +77,26 @@ public class AdapterUser
     public string id { get; set; }
     public string name { get; set; }
 }
+
+public class AdapterAccount
+{
+    public string provider { get; set; }
+    public string providerAccountId { get; set; }
+    public string type { get; set; }
+    public string user_id { get; set; }
+}
+
+public class AccountIDs
+{
+    public string provider { get; set; }
+    public string providerAccountId { get; set; }
+}
+
+public class UserLogIn
+{
+    public string id { get; set; }
+    public string name { get; set; }
+    public string email { get; set; }
+    public string type { get; set; }
+    public string provider { get; set; }
+}

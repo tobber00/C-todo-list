@@ -1,5 +1,7 @@
 
 
+using System.Reflection.Metadata;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -104,10 +106,47 @@ app.MapPost("/CreateTodoList", (TodoListJson todoListJson) =>
 })
 .WithName("CreateTodoList");
 
-app.MapPost("/User", (UserJson userJson) =>
+app.MapPost("/User", (UserLogIn userLogIn) =>
 {
-    //TODO hash password somewhere
-    databaseConn.CreateUser(userJson.username, userJson.password, userJson.email);
+    // Check if the user already signed in with provider
+    if (databaseConn.UserHasAccount(userLogIn.id, userLogIn.provider))
+    {
+        // If so, return the user
+        return databaseConn.GetUserByAccount(new AccountIDs { provider = userLogIn.provider, providerAccountId = userLogIn.id });
+    }
+    // Check if they logged in using a different provider
+    else if (databaseConn.UserExistsByEmail(userLogIn.email))
+    {
+        // If so, link the new account to the existing user
+        var user = databaseConn.GetUserByEmail(userLogIn.email);
+        databaseConn.LinkAccount(new AdapterAccount
+        {
+            provider = userLogIn.provider,
+            providerAccountId = userLogIn.id,
+            type = userLogIn.type,
+            user_id = user.id
+        });
+        return user;
+    }
+    else
+    {
+        // If not, create a new user and link the account
+        var newUser = databaseConn.CreateUser(new AdapterUser
+        {
+            email = userLogIn.email,
+            emailVerified = DateTime.Now,
+            id = null,
+            name = userLogIn.name
+        });
+        databaseConn.LinkAccount(new AdapterAccount
+        {
+            provider = userLogIn.provider,
+            providerAccountId = userLogIn.id,
+            type = userLogIn.type,
+            user_id = newUser.id
+        });
+        return newUser;
+    }
 })
 .WithName("User");
 
@@ -151,5 +190,22 @@ app.MapGet("/GetSharedTodoLists", (string userID) =>
     }
     return todoLists;
 }).WithName("GetSharedTodoLists");
+
+app.MapGet("/GetUser", (string id) =>
+{
+    return databaseConn.GetUser(id);
+}).WithName("GetUser");
+
+app.MapPost("/GetUserByAccount", (AccountIDs accountIDs) =>
+{
+    return databaseConn.GetUserByAccount(accountIDs);
+}).WithName("GetUserByAccount");
+
+//TODO update user?
+
+app.MapPost("/LinkAccount", (AdapterAccount adapterAccount) =>
+{
+    databaseConn.LinkAccount(adapterAccount);
+}).WithName("LinkAccount");
 
 app.Run();

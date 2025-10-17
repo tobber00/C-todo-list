@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(200) NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL
+    email_verified DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS verification_tokens (
@@ -36,4 +36,14 @@ CREATE TABLE IF NOT EXISTS todolist_shares (
     user_id INTEGER,
     CONSTRAINT user_id_ts_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE(todolist_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    provider VARCHAR(100),
+    providerAccountId VARCHAR(100),
+    type VARCHAR(50),
+    user_id INTEGER,
+    CONSTRAINT user_id_ac_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(provider, providerAccountId)
 );

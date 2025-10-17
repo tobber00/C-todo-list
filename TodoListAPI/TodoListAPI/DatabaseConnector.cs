@@ -136,21 +136,38 @@ public class DatabaseConnector
                 }
                 else
                 {
-                    throw new Exception("Failed to retrieve inserted todo item.");
+                    throw new Exception("Failed to retrieve inserted todo list.");
                 }
             }
         }
     }
 
-    public void CreateUser(string username, string passwordHash, string email)
+// TODO: change so it doesn't take in Adapteruser
+    public AdapterUser CreateUser(AdapterUser adapterUser)
     {
-        string sql = "INSERT INTO users (username, password_hash, email) VALUES (@username, @passwordHash, @email)";
+        string sql = "INSERT INTO users (username, email, email_verified) VALUES (@username, @email, @email_verified); SELECT id, username, email, email_verified FROM users WHERE id = LAST_INSERT_ID();";
         using (var command = new MySqlCommand(sql, connection))
         {
-            command.Parameters.AddWithValue("@username", username);
-            command.Parameters.AddWithValue("@passwordHash", passwordHash);
-            command.Parameters.AddWithValue("@email", email);
-            int rowsAffected = command.ExecuteNonQuery();
+            command.Parameters.AddWithValue("@username", adapterUser.name);
+            command.Parameters.AddWithValue("@email", adapterUser.email);
+            command.Parameters.AddWithValue("@email_verified", adapterUser.emailVerified);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new AdapterUser
+                    {
+                        email = reader.GetString("email"),
+                        emailVerified = reader.GetDateTime("email_verified"),
+                        id = (reader.GetInt32("id")).ToString(),
+                        name = reader.GetString("username")
+                    };
+                }
+                else
+                {
+                    throw new Exception("Failed to retrieve user.");
+                }
+            }
         }
     }
 
@@ -221,6 +238,122 @@ public class DatabaseConnector
             {
                 throw new Exception("User not found.");
             }
+        }
+    }
+
+    public AdapterUser GetUser(string id)
+    {
+        string sql = "SELECT id, username, email, email_verified FROM users WHERE id = @id";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@id", id);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new AdapterUser
+                    {
+                        id = reader.GetInt32("id").ToString(),
+                        name = reader.GetString("username"),
+                        email = reader.GetString("email"),
+                        emailVerified = reader.GetDateTime("email_verified")
+                    };
+                }
+                else
+                {
+                    throw new Exception("User not found.");
+                }
+            }
+        }
+        
+    }
+
+    public AdapterUser GetUserByAccount(AccountIDs accountIDs)
+    {
+        string sql = "SELECT u.id, u.username, u.email, u.email_verified FROM users u JOIN accounts a ON u.id = a.user_id WHERE a.provider = @provider AND a.providerAccountId = @providerAccountId";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@provider", accountIDs.provider);
+            command.Parameters.AddWithValue("@providerAccountId", accountIDs.providerAccountId);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new AdapterUser
+                    {
+                        id = reader.GetInt32("id").ToString(),
+                        name = reader.GetString("username"),
+                        email = reader.GetString("email"),
+                        emailVerified = reader.GetDateTime("email_verified")
+                    };
+                }
+                else
+                {
+                    throw new Exception("User not found.");
+                }
+            }
+        }
+    }
+
+    public Boolean UserHasAccount(string providerID, string provider)
+    {
+        string sql = "SELECT COUNT(*) FROM accounts WHERE providerAccountId = @providerID AND provider = @provider";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@providerID", providerID);
+            command.Parameters.AddWithValue("@provider", provider);
+            int count = Convert.ToInt32(command.ExecuteScalar());
+            return count > 0;
+        }
+    }
+
+    public Boolean UserExistsByEmail(string email)
+    {
+        string sql = "SELECT COUNT(*) FROM users WHERE email = @email";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@email", email);
+            int count = Convert.ToInt32(command.ExecuteScalar());
+            return count > 0;
+        }
+    }
+
+    public AdapterUser GetUserByEmail(string email)
+    {
+        string sql = "SELECT id, username, email, email_verified FROM users WHERE email = @email";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@email", email);
+            using (var reader = command.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return new AdapterUser
+                    {
+                        id = reader.GetInt32("id").ToString(),
+                        name = reader.GetString("username"),
+                        email = reader.GetString("email"),
+                        emailVerified = reader.GetDateTime("email_verified")
+                    };
+                }
+                else
+                {
+                    throw new Exception("User not found.");
+                }
+            }
+        }
+    }
+    
+    public void LinkAccount(AdapterAccount adapterAccount)
+    {
+        string sql = "INSERT INTO accounts (provider, providerAccountId, type, user_id) VALUES (@provider, @providerAccountId, @type, @user_id)";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@provider", adapterAccount.provider);
+            command.Parameters.AddWithValue("@providerAccountId", adapterAccount.providerAccountId);
+            command.Parameters.AddWithValue("@type", adapterAccount.type);
+            command.Parameters.AddWithValue("@user_id", adapterAccount.user_id);
+            int rowsAffected = command.ExecuteNonQuery();
         }
     }
 
