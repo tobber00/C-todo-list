@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Todo from "./todo";
+import Todo from "./components/todo";
 
 export default function Content({
   todos,
+  name,
 }: {
-  todos: { data: { id: number; task: string; completed: boolean }[] };
+  todos: {
+    data: { id: number; task: string; completed: boolean }[];
+  };
+  name: string;
 }) {
   const [todoList, setTodoList] = useState(todos.data);
   return (
@@ -32,7 +36,7 @@ export default function Content({
         Create
       </button>
 
-      <p>Your todo-list:</p>
+      <p>{name}</p>
       <div>
         {todoList.map(
           (todo: { id: number; task: string; completed: boolean }) => (

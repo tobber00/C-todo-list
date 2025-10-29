@@ -1,7 +1,8 @@
 "use server";
 import { auth } from "@/auth";
-import Content from "./content";
+import Content from "./todolist";
 import SignIn from "./components/sign-in";
+import Overview from "./overview";
 
 export default async function Home() {
   const session = await auth();
@@ -9,7 +10,7 @@ export default async function Home() {
   //let todos = await data.json();
   //<Content todos={todos} />
   var user = null;
-  //<span>Signed in as {user.name}</span>
+  var todolists = null;
 
   if (session) {
     user = await fetch("http://localhost:8000/user", {
@@ -28,11 +29,18 @@ export default async function Home() {
     console.log("fetched user", user);
   }
 
+  if (user != null) {
+    todolists = await fetch(
+      "http://localhost:8000/GetTodoLists?ownerID=" + user.id
+    ).then((res) => res.json());
+  }
+
   return (
     <>
       {session ? (
         <>
           <span>Signed in as {user.name}</span>
+          <Overview todolistsInput={todolists} userID={user.id} />
         </>
       ) : (
         <SignIn />
