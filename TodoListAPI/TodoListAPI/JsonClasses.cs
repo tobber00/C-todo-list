@@ -100,3 +100,14 @@ public class UserLogIn
     public string type { get; set; }
     public string provider { get; set; }
 }
+
+public class SharedTodoListUsers
+{
+    public List<string> data { get; set; }
+}
+
+public class UnfollowListJson
+{
+    public string userID { get; set; }
+    public string listID { get; set; }
+}

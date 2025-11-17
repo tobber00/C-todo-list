@@ -112,8 +112,28 @@ public class DatabaseConnector
                 };
                 items.Add(item);
             }
-        };
+        }
+        ;
         return items;
+    }
+    
+    public SharedTodoListUsers GetTodoListSharedUsers(string listID)
+    {
+        SharedTodoListUsers sharedUsers = new SharedTodoListUsers();
+        sharedUsers.data = new List<string>();
+        string sql = "SELECT u.username FROM users u JOIN todolist_shares tls ON u.id = tls.user_id WHERE tls.todolist_id = @listID";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@listID", listID);
+            using MySqlDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                string username = reader.GetString("username");
+                sharedUsers.data.Add(username);
+            }
+        }
+        ;
+        return sharedUsers;
     }
 
     public TodoList CreateTodoList(string ownerID, string listName)
@@ -214,30 +234,12 @@ public class DatabaseConnector
     }
     public void ShareTodoList(ShareJson shareJson)
     {
-        string sql = "INSERT INTO todolist_shares (todolist_id, user_id) VALUES (@listID, @userID)";
+        string sql = "INSERT INTO todolist_shares (todolist_id, user_id) VALUES (@listID, (SELECT id FROM users WHERE username = @username))";
         using (var command = new MySqlCommand(sql, connection))
         {
             command.Parameters.AddWithValue("@listID", shareJson.listID);
-            command.Parameters.AddWithValue("@userID", GetUserID(shareJson.username));
+            command.Parameters.AddWithValue("@username", shareJson.username);
             int rowsAffected = command.ExecuteNonQuery();
-        }
-    }
-
-    private string GetUserID(string username)
-    {
-        string sql = "SELECT id FROM users WHERE username = @username";
-        using (var command = new MySqlCommand(sql, connection))
-        {
-            command.Parameters.AddWithValue("@username", username);
-            var result = command.ExecuteScalar();
-            if (result != null)
-            {
-                return result.ToString();
-            }
-            else
-            {
-                throw new Exception("User not found.");
-            }
         }
     }
 
@@ -382,11 +384,22 @@ public class DatabaseConnector
 
     public void UnshareTodoList(ShareJson shareJson)
     {
-        string sql = "DELETE FROM todolist_shares WHERE todolist_id = @listID AND user_id = @userID";
+        string sql = "DELETE FROM todolist_shares WHERE todolist_id = @listID AND user_id = (SELECT id FROM users WHERE username = @username)";
         using (var command = new MySqlCommand(sql, connection))
         {
             command.Parameters.AddWithValue("@listID", shareJson.listID);
-            command.Parameters.AddWithValue("@userID", GetUserID(shareJson.username));
+            command.Parameters.AddWithValue("@username", shareJson.username);
+            int rowsAffected = command.ExecuteNonQuery();
+        }
+    }
+
+    public void UnfollowTodoList(UnfollowListJson unfollowListJson)
+    {
+        string sql = "DELETE FROM todolist_shares WHERE todolist_id = @listID AND user_id = @userID";
+        using (var command = new MySqlCommand(sql, connection))
+        {
+            command.Parameters.AddWithValue("@listID", unfollowListJson.listID);
+            command.Parameters.AddWithValue("@userID", unfollowListJson.userID);
             int rowsAffected = command.ExecuteNonQuery();
         }
     }

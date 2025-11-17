@@ -175,6 +175,11 @@ app.MapPost("/UnshareTodoList", (ShareJson shareJson) =>
     databaseConn.UnshareTodoList(shareJson);
 }).WithName("UnshareTodoList");
 
+app.MapPost("/UnfollowTodoList", (UnfollowListJson unfollowListJson) =>
+{
+    databaseConn.UnfollowTodoList(unfollowListJson);
+}).WithName("UnfollowTodoList");
+
 app.MapGet("/GetSharedTodoLists", (string userID) =>
 {
     var todoLists = new TodoLists();
@@ -200,6 +205,11 @@ app.MapPost("/GetUserByAccount", (AccountIDs accountIDs) =>
 {
     return databaseConn.GetUserByAccount(accountIDs);
 }).WithName("GetUserByAccount");
+
+app.MapGet("/GetUsersWithSharedAccess", (string listID) =>
+{
+    return databaseConn.GetTodoListSharedUsers(listID);
+}).WithName("GetUsersWithSharedAccess");
 
 //TODO update user?
 

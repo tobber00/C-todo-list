@@ -11,6 +11,7 @@ export default async function Home() {
   //<Content todos={todos} />
   var user = null;
   var todolists = null;
+  var sharedTodolists = null;
 
   if (session) {
     user = await fetch("http://localhost:8000/user", {
@@ -26,12 +27,14 @@ export default async function Home() {
         provider: session.user.provider,
       }),
     }).then((res) => res.json());
-    console.log("fetched user", user);
   }
 
   if (user != null) {
     todolists = await fetch(
       "http://localhost:8000/GetTodoLists?ownerID=" + user.id
+    ).then((res) => res.json());
+    sharedTodolists = await fetch(
+      "http://localhost:8000/GetSharedTodoLists?userID=" + user.id
     ).then((res) => res.json());
   }
 
@@ -40,7 +43,11 @@ export default async function Home() {
       {session ? (
         <>
           <span>Signed in as {user.name}</span>
-          <Overview todolistsInput={todolists} userID={user.id} />
+          <Overview
+          todolistsInput={todolists}
+          userID={user.id} 
+          sharedTodolistsInput={sharedTodolists}
+          />
         </>
       ) : (
         <SignIn />
