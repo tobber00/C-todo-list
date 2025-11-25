@@ -11,6 +11,11 @@ import {
   TextField,
   Grid,
   Paper,
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
+  CardActionArea,
 } from "@mui/material";
 
 export default function Overview({
@@ -48,11 +53,19 @@ export default function Overview({
   const open = Boolean(anchorEl);
   const id = open ? "simple-popper" : undefined;
 
+  const [newTodolistName, setNewTodolistName] = useState("");
+
   return (
     <Grid container spacing={4} sx={{ p: 2 }}>
       <Grid size={{ xs: 12, md: 6, lg: 3 }}>
         <Paper elevation={8} sx={{ p: 2, height: "100%", width: "100%" }}>
-          <Stack spacing={1} alignItems="center" direction="row">
+          <Stack
+            spacing={1}
+            alignItems="center"
+            direction="row"
+            justifyContent="space-between"
+            sx={{ mb: 1 }}
+          >
             <Typography variant="h5" component="h2">
               Your Todolists
             </Typography>
@@ -65,43 +78,47 @@ export default function Overview({
               +
             </Button>
             <Popper id={id} open={open} anchorEl={anchorEl}>
-              <Stack spacing={2} padding={2} bgcolor="gray" boxShadow={3}>
-                <Typography variant="h6" component="h6">
-                  Create new todolist
-                </Typography>
-                <TextField
-                  name="createTodoListInput"
-                  label="Todolist name"
-                  variant="outlined"
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="medium"
-                  onClick={() => {
-                    let input = document.querySelector(
-                      "input[name='createTodoListInput']"
-                    ) as HTMLInputElement;
-                    fetch("/api/CreateTodoList", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        name: input?.value,
-                        ownerID: userID,
-                      }),
-                    })
-                      .then((res) => res.json())
-                      .then((todolist) =>
-                        setTodolists([...todolists, todolist.data])
-                      );
-                    input!.value = "";
-                  }}
-                >
-                  Create
-                </Button>
-              </Stack>
+              <Card elevation={8}>
+                <CardHeader title="Create new todolist" />
+                <CardContent>
+                  <TextField
+                    name="createTodoListInput"
+                    label="Todolist name"
+                    variant="outlined"
+                    multiline={true}
+                    fullWidth
+                    value={newTodolistName}
+                    onChange={(e) => setNewTodolistName(e.target.value)}
+                  />
+                </CardContent>
+                <CardActions>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="medium"
+                    onClick={() => {
+                      fetch("/api/CreateTodoList", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          name: newTodolistName,
+                          ownerID: userID,
+                        }),
+                      })
+                        .then((res) => res.json())
+                        .then((todolist) =>
+                          setTodolists([...todolists, todolist.data])
+                        );
+                      setNewTodolistName("");
+                    }}
+                    sx={{ width: "100%" }}
+                  >
+                    Create
+                  </Button>
+                </CardActions>
+              </Card>
             </Popper>
           </Stack>
           <Stack direction="column" spacing={1.5}>
