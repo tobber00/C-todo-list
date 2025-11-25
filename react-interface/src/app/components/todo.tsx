@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button, Box, Typography, Checkbox, Stack } from '@mui/material';
 
 export default function Todo({
   todo,
@@ -15,36 +16,39 @@ export default function Todo({
 }) {
   const [completed, setCompleted] = useState(todo.completed);
   return (
-    <div key={todo.id}>
-      <input
-        type="checkbox"
-        checked={completed}
-        onChange={async () => {
-          await fetch("/api/ChangeCompletion?todoID=" + todo.id, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ Completion: !completed }),
-          });
-          setCompleted(!completed);
-        }}
-      />
-      <span>{todo.task}</span>
-      <button
-        className="bg-red-400"
-        onClick={() => {
-          fetch("/api/DeleteTodo?todoID=" + todo.id, {
-            method: "DELETE",
-          }).then(() => {
-            var newTodoList = [...todoList];
-            newTodoList.splice(todoList.indexOf(todo), 1);
-            setTodoList(newTodoList);
-          });
-        }}
-      >
-        Delete
-      </button>
-    </div>
+    <Box key={todo.id}>
+      <Stack spacing={2} direction="row" justifyContent="space-between">
+        <Checkbox
+          checked={completed}
+          onChange={async () => {
+            await fetch("/api/ChangeCompletion?todoID=" + todo.id, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ Completion: !completed }),
+            });
+            setCompleted(!completed);
+          }}
+        />
+        <Typography variant="subtitle1" component="span">{todo.task}</Typography>
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          onClick={() => {
+            fetch("/api/DeleteTodo?todoID=" + todo.id, {
+              method: "DELETE",
+            }).then(() => {
+              var newTodoList = [...todoList];
+              newTodoList.splice(todoList.indexOf(todo), 1);
+              setTodoList(newTodoList);
+            });
+          }}
+        >
+          X
+        </Button>
+      </Stack>
+    </Box>
   );
 }

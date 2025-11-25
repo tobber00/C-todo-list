@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Button, Stack, Box, Typography } from '@mui/material';
 
 export default function SharedUsers({
   users,
@@ -18,13 +19,15 @@ export default function SharedUsers({
     }, [users.data]);
 
     return (
-        <div>
-            <p>Shared with:</p>
+        <Box>
+            <Typography variant="h6" component="h6">Shared with:</Typography>
             {SharedUsers.map((username: string) => (
-                <div key={username}>
-                    <span>{username}</span>
-                    <button
-                      className="bg-red-400"
+                <Stack key={username} direction="row" spacing={2} justifyContent="space-between">
+                    <Typography variant="subtitle1" component="p">{username}</Typography>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
                       onClick={() => {
                         fetch("/api/UnshareTodoList", {
                           method: "POST",
@@ -38,10 +41,10 @@ export default function SharedUsers({
                         });
                         }}
                     >
-                      Unshare
-                    </button>
-                </div>
+                      X
+                    </Button>
+                </Stack>
             ))}
-        </div>
+        </Box>
     );
 }
